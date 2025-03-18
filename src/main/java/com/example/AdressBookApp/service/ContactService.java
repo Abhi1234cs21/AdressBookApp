@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ContactService {
+public class ContactService implements IContactService{
 
     private final ContactRepository contactRepository;
     private final ContactMapper contactMapper;
@@ -22,6 +22,7 @@ public class ContactService {
         this.contactMapper = contactMapper;
     }
 
+    @Override
     public List<ContactDTO> getAllContacts() {
         try {
             return contactRepository.findAll()
@@ -32,7 +33,7 @@ public class ContactService {
             throw new AddressBookException("An error occurred while fetching contacts: " + e.getMessage());
         }
     }
-
+@Override
     public ContactDTO getContactById(Long id) {
         try {
             Optional<Contact> contact = contactRepository.findById(id);
@@ -44,7 +45,7 @@ public class ContactService {
             throw new AddressBookException("Error retrieving contact with ID " + id + ": " + e.getMessage());
         }
     }
-
+@Override
     public ContactDTO addContact(ContactDTO contactDTO) {
         try {
             Contact contact = contactMapper.toEntity(contactDTO);
@@ -53,6 +54,7 @@ public class ContactService {
             throw new AddressBookException("Error adding new contact: " + e.getMessage());
         }
     }
+    @Override
 
     public ContactDTO updateContact(Long id, ContactDTO contactDTO) {
         try {
@@ -69,7 +71,7 @@ public class ContactService {
             throw new AddressBookException("Error updating contact with ID " + id + ": " + e.getMessage());
         }
     }
-
+@Override
     public boolean deleteContact(Long id) {
         try {
             if (contactRepository.existsById(id)) {

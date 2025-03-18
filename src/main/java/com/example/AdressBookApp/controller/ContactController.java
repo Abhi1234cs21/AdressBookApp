@@ -2,7 +2,7 @@ package com.example.AdressBookApp.controller;
 
 import com.example.AdressBookApp.dto.ContactDTO;
 import com.example.AdressBookApp.exceptions.AddressBookException;
-import com.example.AdressBookApp.service.ContactService;
+import com.example.AdressBookApp.service.IContactService;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,10 +20,10 @@ import java.util.List;
 @RequestMapping("/api/contacts")
 public class ContactController {
 
-    private final ContactService contactService;
+    private final IContactService contactService;
 
     // Constructor-based Dependency Injection
-    public ContactController(ContactService contactService) {
+    public ContactController(IContactService contactService) {
         this.contactService = contactService;
     }
 
