@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 public class ContactMapper {
 
     public ContactDTO toDTO(Contact contact) {
-        return new ContactDTO(contact.getId(), contact.getName(), contact.getEmail(), contact.getPhone());
+        return new ContactDTO(contact.getId(), contact.getName(), contact.getEmail(), contact.getPhone(), contact.getCity());
     }
 
     public Contact toEntity(ContactDTO contactDTO) {
@@ -17,6 +17,7 @@ public class ContactMapper {
         contact.setName(contactDTO.getName());
         contact.setEmail(contactDTO.getEmail());
         contact.setPhone(contactDTO.getPhone());
+        contact.setCity(contactDTO.getCity());
         return contact;
     }
 }
