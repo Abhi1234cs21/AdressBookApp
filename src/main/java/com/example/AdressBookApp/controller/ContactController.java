@@ -5,6 +5,7 @@ import com.example.AdressBookApp.exceptions.AddressBookException;
 import com.example.AdressBookApp.service.IContactService;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +20,7 @@ import java.util.List;
 @Validated
 @RequestMapping("/api/contacts")
 public class ContactController {
+
 
     private final IContactService contactService;
 
