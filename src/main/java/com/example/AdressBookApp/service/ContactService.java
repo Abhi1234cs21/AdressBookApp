@@ -1,10 +1,15 @@
 package com.example.AdressBookApp.service;
 
+
 import com.example.AdressBookApp.dto.ContactDTO;
 import com.example.AdressBookApp.exceptions.AddressBookException;
-import com.example.AdressBookApp.mapper.ContactMapper;
 import com.example.AdressBookApp.model.Contact;
 import com.example.AdressBookApp.repository.ContactRepository;
+import com.example.AdressBookApp.mapper.ContactMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,17 +17,20 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ContactService implements IContactService{
+public class ContactService implements IContactService {
 
-    private final ContactRepository contactRepository;
-    private final ContactMapper contactMapper;
+    private ContactRepository contactRepository;
+    private ContactMapper contactMapper;
 
+    @Autowired
     public ContactService(ContactRepository contactRepository, ContactMapper contactMapper) {
         this.contactRepository = contactRepository;
         this.contactMapper = contactMapper;
     }
 
+    // ===================== GET ALL CONTACTS =====================
     @Override
+    @Cacheable(value = "contacts", key = "'contactList'")
     public List<ContactDTO> getAllContacts() {
         try {
             return contactRepository.findAll()
@@ -30,59 +38,67 @@ public class ContactService implements IContactService{
                     .map(contactMapper::toDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            throw new AddressBookException("An error occurred while fetching contacts: " + e.getMessage());
+            throw new AddressBookException("Error fetching contacts: " + e.getMessage());
         }
     }
-@Override
+
+    // ===================== GET CONTACT BY ID =====================
+    @Override
+    @Cacheable(value = "contacts", key = "#id")
     public ContactDTO getContactById(Long id) {
         try {
             Optional<Contact> contact = contactRepository.findById(id);
-            if (contact.isEmpty()) {
-                throw new AddressBookException("Contact with ID: " + id + " not found");
-            }
-            return contactMapper.toDTO(contact.get());
+            return contact.map(contactMapper::toDTO)
+                    .orElseThrow(() -> new AddressBookException("Contact not found with ID: " + id));
         } catch (Exception e) {
-            throw new AddressBookException("Error retrieving contact with ID " + id + ": " + e.getMessage());
+            throw new AddressBookException("Error fetching contact with ID " + id + ": " + e.getMessage());
         }
     }
-@Override
+
+    // ===================== ADD CONTACT =====================
+    @Override
+    @CachePut(value = "contacts", key = "#result.id")
     public ContactDTO addContact(ContactDTO contactDTO) {
         try {
             Contact contact = contactMapper.toEntity(contactDTO);
             return contactMapper.toDTO(contactRepository.save(contact));
         } catch (Exception e) {
-            throw new AddressBookException("Error adding new contact: " + e.getMessage());
+            throw new AddressBookException("Error adding contact: " + e.getMessage());
         }
     }
-    @Override
 
+    // ===================== UPDATE CONTACT =====================
+    @Override
+    @CachePut(value = "contacts", key = "#id")
     public ContactDTO updateContact(Long id, ContactDTO contactDTO) {
         try {
-            Optional<Contact> existingContact = contactRepository.findById(id);
-            if (existingContact.isEmpty()) {
-                throw new AddressBookException("Contact with ID: " + id + " not found for update");
-            }
-            existingContact.get().setName(contactDTO.getName());
-            existingContact.get().setEmail(contactDTO.getEmail());
-            existingContact.get().setPhone(contactDTO.getPhone());
-            existingContact.get().setCity(contactDTO.getCity());
-            return contactMapper.toDTO(contactRepository.save(existingContact.get()));
+            Contact contact = contactRepository.findById(id)
+                    .orElseThrow(() -> new AddressBookException("Contact not found for update with ID: " + id));
+
+            contact.setName(contactDTO.getName());
+            contact.setEmail(contactDTO.getEmail());
+            contact.setPhone(contactDTO.getPhone());
+            contact.setCity(contactDTO.getCity());
+
+            return contactMapper.toDTO(contactRepository.save(contact));
         } catch (Exception e) {
             throw new AddressBookException("Error updating contact with ID " + id + ": " + e.getMessage());
         }
     }
-@Override
+
+    // ===================== DELETE CONTACT =====================
+    @Override
+    @CacheEvict(value = "contacts", key = "#id")
     public boolean deleteContact(Long id) {
         try {
             if (contactRepository.existsById(id)) {
                 contactRepository.deleteById(id);
                 return true;
             } else {
-                throw new AddressBookException("Contact with ID: " + id + " not found for deletion");
+                throw new AddressBookException("Contact not found for deletion with ID: " + id);
             }
         } catch (Exception e) {
             throw new AddressBookException("Error deleting contact with ID " + id + ": " + e.getMessage());
         }
-
     }
 }
