@@ -1,6 +1,7 @@
 package com.example.AdressBookApp.controller;
 
 import com.example.AdressBookApp.dto.AuthUserDTO;
+import com.example.AdressBookApp.dto.PasswordResetDTO;
 import com.example.AdressBookApp.service.AuthenticationService;
 import com.example.AdressBookApp.service.EmailService;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -9,25 +10,45 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.AdressBookApp.dto.LoginDTO;
 import com.example.AdressBookApp.dto.MailDTO;
 
+;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
+@RequestMapping("/auth")  // 🔹 Base URL for all authentication endpoints
 public class AuthenticationController {
-    EmailService emailService;
-    AuthenticationService authenticationService;
 
-    public AuthenticationController(EmailService emailService, AuthenticationService authenticationService) {
-        this.emailService = emailService;
+    private final EmailService emailService;  // Declare EmailService as a final field
+    private final AuthenticationService authenticationService;
+
+    // Constructor Injection for both AuthenticationService and EmailService
+    public AuthenticationController(AuthenticationService authenticationService, EmailService emailService) {
         this.authenticationService = authenticationService;
+        this.emailService = emailService;  // Initialize emailService via constructor
     }
 
-    //============================UC9(Register and Login for a User)
-    @PostMapping(path = "/register")
-    public String register(@RequestBody AuthUserDTO user){
-        return authenticationService.register(user);
+    // 🔹 Register User
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody AuthUserDTO user) {
+        return ResponseEntity.ok(authenticationService.register(user));
     }
 
-    @PostMapping(path ="/login")
-    public String login(@RequestBody LoginDTO user){
-        return authenticationService.login(user);
+    // 🔹 Login User
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody LoginDTO user) {
+        return ResponseEntity.ok(authenticationService.login(user));
+    }
+
+    // 🔹 Forgot Password (User provides email & new phone)
+    @PutMapping("/forgotPassword/{email}")
+    public ResponseEntity<String> forgotPassword(@PathVariable String email, @RequestBody PasswordResetDTO passwordResetDTO) {
+        return ResponseEntity.ok(authenticationService.forgotPassword(email, passwordResetDTO.getNewPhone()));
+    }
+
+    // 🔹 Reset Password (User provides email, current phone & new phone)
+    @PutMapping("/resetPassword/{email}")
+    public ResponseEntity<String> resetPassword(@PathVariable String email, @RequestBody PasswordResetDTO passwordResetDTO) {
+        return ResponseEntity.ok(authenticationService.resetPassword(email, passwordResetDTO.getCurrentPhone(), passwordResetDTO.getNewPhone()));
     }
 
     //==============================Sendmail======================//
@@ -35,8 +56,4 @@ public class AuthenticationController {
     public String sendMail(@RequestBody MailDTO user){ emailService.sendEmail(user.getTo(), user.getSubject(), user.getBody());
         return "Mail Sent";
     }
-
-
-
-
 }
