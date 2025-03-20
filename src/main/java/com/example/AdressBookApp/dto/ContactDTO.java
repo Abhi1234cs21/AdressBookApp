@@ -3,12 +3,17 @@ package com.example.AdressBookApp.dto;
 import lombok.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import java.io.Serial;
+import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ContactDTO {
+
+    public class ContactDTO  implements Serializable {
+        @Serial
+        private static final long serialVersionUID = 1L;
     private Long id;
 
 
