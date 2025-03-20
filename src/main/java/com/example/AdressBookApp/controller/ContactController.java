@@ -5,6 +5,7 @@ import com.example.AdressBookApp.exceptions.AddressBookException;
 import com.example.AdressBookApp.service.IContactService;
 
 import lombok.extern.slf4j.Slf4j;
+import com.example.AdressBookApp.service.MessageProducer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,12 +23,12 @@ import java.util.List;
 public class ContactController {
 
 
-    private final IContactService contactService;
+    @Autowired
+    private IContactService contactService;
 
-    // Constructor-based Dependency Injection
-    public ContactController(IContactService contactService) {
-        this.contactService = contactService;
-    }
+
+    @Autowired
+    private MessageProducer messageProducer;
 
     @GetMapping
     public ResponseEntity<List<ContactDTO>> getAllContacts() {
@@ -36,6 +37,7 @@ public class ContactController {
             List<ContactDTO> contacts = contactService.getAllContacts();
             log.info("Retrieved {} contacts", contacts.size());
             return ResponseEntity.ok(contacts);
+
         } catch (AddressBookException e) {
             log.error("Error fetching contacts: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -121,5 +123,11 @@ public class ContactController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build(); // return 500 for any other unexpected error
         }
+    }
+    // Send Contact Details to RabbitMQ
+    @PostMapping("/sendToQueue")
+    public ResponseEntity<String> sendToQueue(@RequestBody ContactDTO dto) {
+        messageProducer.sendMessage("Contact Info: " + dto.toString());
+        return ResponseEntity.ok("Contact sent to RabbitMQ successfully");
     }
 }
