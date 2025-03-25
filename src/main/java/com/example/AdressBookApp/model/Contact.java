@@ -1,5 +1,4 @@
 package com.example.AdressBookApp.model;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +15,11 @@ public class Contact {
     private Long id;
 
     private String name;
-    private String email;
+    //    private String email;
     private String phone;
     private String city;
+
+    private String address;  // ✅ Added
+    private String state;    // ✅ Added
+    private String zipCode;  // ✅ Added
 }
